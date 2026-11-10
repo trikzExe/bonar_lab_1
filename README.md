@@ -15,7 +15,7 @@
 | Ідентифікатор (`sNN`) | s04 |
 | Дата виконання | 08.11.26 |
 | Середовище | GitHub Codespaces |
-| Версія `dig` | DiG 9.18.39-0ubuntu0.24.04.9-Ubuntu |
+| Версія `dig` | DiG 9.18.39-0ubuntu0.24.04.8-Ubuntu |
 
 ## Параметри варіанта
 
@@ -88,31 +88,124 @@ URI 4: етап, на якому запит не вдається (пошук і
 ## Завдання 2. Проходження ієрархії вручну
 
 ```text
+dig @10.53.0.2 ns.s04.lab A +norec
+
+; <<>> DiG 9.18.39-0ubuntu0.24.04.8-Ubuntu <<>> @10.53.0.2 ns.s04.lab A +norec
+; (1 server found)
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 42248
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 1, ADDITIONAL: 2
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+; COOKIE: 47e5780a3cdd2812010000006af350c00e9c88b59850a00d (good)
+;; QUESTION SECTION:
+;ns.s04.lab.                    IN      A
+
+;; AUTHORITY SECTION:
+lab.                    172800  IN      NS      ns1.nic.lab.
+
+;; ADDITIONAL SECTION:
+ns1.nic.lab.            172800  IN      A       10.53.0.3
+
+;; Query time: 79 msec
+;; SERVER: 10.53.0.2#53(10.53.0.2) (UDP)
+;; WHEN: Tue Nov 10 17:13:36 UTC 2026
+;; MSG SIZE  rcvd: 111
+
+dig @10.53.0.3 ns.s04.lab A +norec
+
+; <<>> DiG 9.18.39-0ubuntu0.24.04.8-Ubuntu <<>> @10.53.0.3 ns.s04.lab A +norec
+; (1 server found)
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 1703
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 1, ADDITIONAL: 2
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+; COOKIE: 08420c260128600c010000006af350c8c0262d4dba0b310b (good)
+;; QUESTION SECTION:
+;ns.s04.lab.                    IN      A
+
+;; AUTHORITY SECTION:
+s04.lab.                3600    IN      NS      ns.s04.lab.
+
+;; ADDITIONAL SECTION:
+ns.s04.lab.             3600    IN      A       10.53.1.1
+
+;; Query time: 39 msec
+;; SERVER: 10.53.0.3#53(10.53.0.3) (UDP)
+;; WHEN: Tue Nov 10 17:13:44 UTC 2026
+;; MSG SIZE  rcvd: 97
+
+dig @10.53.1.1 ns.s04.lab A +norec
+
+; <<>> DiG 9.18.39-0ubuntu0.24.04.8-Ubuntu <<>> @10.53.1.1 ns.s04.lab A +norec
+; (1 server found)
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 65273
+;; flags: qr aa; QUERY: 1, ANSWER: 1, AUTHORITY: 1, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+; COOKIE: fbcfebef626da040010000006af350cc1cdab4a99e7916b6 (good)
+;; QUESTION SECTION:
+;ns.s04.lab.                    IN      A
+
+;; ANSWER SECTION:
+ns.s04.lab.             90      IN      A       10.53.1.1
+
+;; AUTHORITY SECTION:
+s04.lab.                90      IN      NS      ns.s04.lab.
+
+;; Query time: 1 msec
+;; SERVER: 10.53.1.1#53(10.53.1.1) (UDP)
+;; WHEN: Tue Nov 10 17:13:48 UTC 2026
+;; MSG SIZE  rcvd: 97
 
 ```
 
 | Сервер | status | flags | ANSWER | AUTHORITY | ADDITIONAL |
 |---|---|---|---|---|---|
-| 10.53.0.2 | | | | | |
-| 10.53.0.3 | | | | | |
-| 10.53.1.1 | | | | | |
+| 10.53.0.2 | NOERROR | qr | 0 | 1 | 2 |
+| 10.53.0.3 | NOERROR | qr | 0 | 1 | 2 |
+| 10.53.1.1 | NOERROR | qr aa | 1 | 1 | 1 |
 
 Вивід `dig ns.sNN.lab A +trace`:
 
 ```text
+dig ns.s04.lab A +trace
+
+; <<>> DiG 9.18.39-0ubuntu0.24.04.8-Ubuntu <<>> ns.s04.lab A +trace
+;; global options: +cmd
+.                       86122   IN      NS      a.root-servers.net.
+;; Received 59 bytes from 10.53.0.53#53(10.53.0.53) in 0 ms
+
+lab.                    172800  IN      NS      ns1.nic.lab.
+;; Received 111 bytes from 10.53.0.2#53(a.root-servers.net) in 80 ms
+
+s04.lab.                3600    IN      NS      ns.s04.lab.
+;; Received 97 bytes from 10.53.0.3#53(ns1.nic.lab) in 40 ms
+
+ns.s04.lab.             90      IN      A       10.53.1.1
+s04.lab.                90      IN      NS      ns.s04.lab.
+;; Received 97 bytes from 10.53.1.1#53(ns.s04.lab) in 0 ms
 
 ```
 
 | Запит | TTL запису NS | Прапорець `aa` | Секція, у якій міститься NS |
 |---|---|---|---|
-| `dig @10.53.0.3 sNN.lab NS +norec` | | | |
-| `dig @10.53.1.1 sNN.lab NS +norec` | | | |
+| `dig @10.53.0.3 sNN.lab NS +norec` | 3600 | ні | AUTHORITY |
+| `dig @10.53.1.1 sNN.lab NS +norec` | 90 | так | ANSWER |
 
-1. Які відповіді є відсиланнями і за якими ознаками це визначено?
+1. Які відповіді є відсиланнями і за якими ознаками це визначено? Відсиланнями є відповіді root (10.53.0.2) і TLD (10.53.0.3). Ознаки: немає прапорця aa, секція ANSWER порожня (0), NS-записи лежать в AUTHORITY, а в ADDITIONAL міститься адреса наступного сервера. Відповідь 10.53.1.1 відсиланням не є: вона має aa, а запис розташований у ANSWER.
 
-2. Для чого у відповіді TLD присутній запис у секції ADDITIONAL і що сталося б, якби його не було?
+2. Для чого у відповіді TLD присутній запис у секції ADDITIONAL і що сталося б, якби його не було? Це glue-запис ns.s04.lab. A 10.53.1.1. Ім'я ns.s04.lab належить самій зоні s04.lab, яку делегує TLD. Без цього запису резолвер не знав би адреси сервера зони: щоб отримати адресу ns.s04.lab, треба спитати сервер зони s04.lab, а щоб його спитати, потрібна його адреса. Утворилося б замкнене коло, і резолвінг не завершився б.
 
-3. Яка з двох копій запису NS є авторитативною і чому?
+3. Яка з двох копій запису NS є авторитативною і чому? Копія на сервері 10.53.1.1: вона віддається з прапорцем aa і береться з файлу зони, за яку цей сервер відповідає. Копія на TLD це лише делегування (без aa, у секції AUTHORITY), TLD за зону s04.lab не відповідає. TTL теж різні: 3600 у делегуванні та 90 з файлу зони.
 
 ## Завдання 3. Заповнення власної зони
 

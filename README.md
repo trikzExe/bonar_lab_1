@@ -500,31 +500,31 @@ s04.lab.                15      IN      SOA     ns.s04.lab. admin.s04.lab. 20261
 Запит через resolver-a (крок 3), час `zone-reload` (крок 4), перевірка на сервері (крок 5):
 
 ```text
-date +%T; dig new-edge.s04.lab
-18:39:31
-;; ->>HEADER<<- opcode: QUERY, status: NXDOMAIN, id: 17198
+date +%T; dig new-fvikr.s04.lab
+19:15:01
+;; ->>HEADER<<- opcode: QUERY, status: NXDOMAIN, id: 61762
 ;; AUTHORITY SECTION:
-s04.lab.                15      IN      SOA     ns.s04.lab. admin.s04.lab. 2026102806 3600 600 86400 20
+s04.lab.                15      IN      SOA     ns.s04.lab. admin.s04.lab. 2026102807 3600 600 86400 20
 
 zone-reload; date +%T
-zone s04.lab/IN: loaded serial 2026102807
+zone s04.lab/IN: loaded serial 2026102808
 OK
 zone reload queued
-18:39:31
+19:15:01
 
-dig @10.53.1.1 new-edge.s04.lab +norec +short
+dig @10.53.1.1 new-fvikr.s04.lab +norec +short
 10.53.0.80
 ```
 
 Вивід циклу спостереження (перші два рядки, останній рядок з `NXDOMAIN`, перший рядок з `NOERROR`):
 
 ```text
-18:39:31 status: NXDOMAIN
-18:39:33 status: NXDOMAIN
+19:15:01 status: NXDOMAIN
+19:15:03 status: NXDOMAIN
 ...
-18:39:43 status: NXDOMAIN
-18:39:45 status: NXDOMAIN
-18:39:47 status: NOERROR
+19:15:13 status: NXDOMAIN
+19:15:15 status: NXDOMAIN
+19:15:17 status: NOERROR
 ```
 
 | Негативну відповідь закешовано | Запис створено | Ім'я резолвиться через resolver-a | Виміряно, с | Прогноз, с |

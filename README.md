@@ -63,7 +63,88 @@
 <!-- Для URI 1–3: рядки запиту (починаються з ">") і тіло відповіді сервера. -->
 
 ```text
+curl -v 'http://www.s04.lab/search/reports?limit=95&sort=x#section-2'
+* Host www.s04.lab:80 was resolved.
+* IPv6: (none)
+* IPv4: 10.53.0.80
+*   Trying 10.53.0.80:80...
+* Connected to www.s04.lab (10.53.0.80) port 80
 
+GET /search/reports?limit=95&sort=x HTTP/1.1
+Host: www.s04.lab
+User-Agent: curl/8.5.0
+Accept: */*
+
+< HTTP/1.1 200 OK
+< Server: nginx/1.24.0 (Ubuntu)
+< Date: Thu, 12 Nov 2026 12:15:18 GMT
+< Content-Type: text/plain
+< Content-Length: 140
+< Connection: keep-alive
+< 
+server: web-a
+Host: www.s04.lab
+request URI: /search/reports?limit=95&sort=x
+path: /search/reports
+query: limit=95&sort=x
+client: 10.53.1.1
+* Connection #0 to host www.s04.lab left intact
+
+curl -v 'http://docs.s04.lab:80/reports/?limit=%D0%BA%D0%B8%D1%97%D0%B2'
+* Host docs.s04.lab:80 was resolved.
+* IPv6: (none)
+* IPv4: 10.53.0.80
+*   Trying 10.53.0.80:80...
+* Connected to docs.s04.lab (10.53.0.80) port 80
+
+GET /reports/?limit=%D0%BA%D0%B8%D1%97%D0%B2 HTTP/1.1
+Host: docs.s04.lab
+User-Agent: curl/8.5.0
+Accept: */*
+
+< HTTP/1.1 200 OK
+< Server: nginx/1.24.0 (Ubuntu)
+< Date: Thu, 12 Nov 2026 12:15:58 GMT
+< Content-Type: text/plain
+< Content-Length: 159
+< Connection: keep-alive
+< 
+server: web-a
+Host: docs.s04.lab
+request URI: /reports/?limit=%D0%BA%D0%B8%D1%97%D0%B2
+path: /reports/
+query: limit=%D0%BA%D0%B8%D1%97%D0%B2
+client: 10.53.1.1
+* Connection #0 to host docs.s04.lab left intact
+
+curl -v 'http://user:pass@edge.s04.lab/search#top'
+* Host edge.s04.lab:80 was resolved.
+* IPv6: (none)
+* IPv4: 10.53.0.81
+*   Trying 10.53.0.81:80...
+* Connected to edge.s04.lab (10.53.0.81) port 80
+* Server auth using Basic with user 'user'
+
+GET /search HTTP/1.1
+Host: edge.s04.lab
+Authorization: Basic dXNlcjpwYXNz
+User-Agent: curl/8.5.0
+Accept: */*
+
+< HTTP/1.1 200 OK
+< Server: nginx/1.24.0 (Ubuntu)
+< Date: Thu, 12 Nov 2026 12:16:19 GMT
+< Content-Type: text/plain
+< Content-Length: 94
+< Connection: keep-alive
+< 
+server: web-b
+Host: edge.s04.lab
+request URI: /search
+path: /search
+query: 
+client: 10.53.1.1
+* Connection #0 to host edge.s04.lab left intact
 ```
 
 Значення заголовка `Authorization` і результат декодування:
@@ -231,29 +312,134 @@ zone reload queued
 Порівняння відповідей резолвера та власного сервера:
 
 ```text
+dig docs.s04.lab
+
+; <<>> DiG 9.18.39-0ubuntu0.24.04.8-Ubuntu <<>> docs.s04.lab
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 63582
+;; flags: qr rd ra; QUERY: 1, ANSWER: 2, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+;; QUESTION SECTION:
+;docs.s04.lab.                  IN      A
+
+;; ANSWER SECTION:
+docs.s04.lab.           90      IN      CNAME   www.s04.lab.
+www.s04.lab.            90      IN      A       10.53.0.80
+
+;; Query time: 40 msec
+;; SERVER: 10.53.0.53#53(10.53.0.53) (UDP)
+;; WHEN: Thu Nov 12 11:21:46 UTC 2026
+;; MSG SIZE  rcvd: 75
+
+dig @10.53.1.1 docs.s04.lab +norec
+
+; <<>> DiG 9.18.39-0ubuntu0.24.04.8-Ubuntu <<>> @10.53.1.1 docs.s04.lab +norec
+; (1 server found)
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 40164
+;; flags: qr aa; QUERY: 1, ANSWER: 2, AUTHORITY: 1, ADDITIONAL: 2
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+; COOKIE: 7aa5708be08998a6010000006af5a16a62bf06eec5197b77 (good)
+;; QUESTION SECTION:
+;docs.s04.lab.                  IN      A
+
+;; ANSWER SECTION:
+docs.s04.lab.           90      IN      CNAME   www.s04.lab.
+www.s04.lab.            90      IN      A       10.53.0.80
+
+;; AUTHORITY SECTION:
+s04.lab.                90      IN      NS      ns.s04.lab.
+
+;; ADDITIONAL SECTION:
+ns.s04.lab.             90      IN      A       10.53.1.1
+
+;; Query time: 0 msec
+;; SERVER: 10.53.1.1#53(10.53.1.1) (UDP)
+;; WHEN: Thu Nov 12 11:22:18 UTC 2026
+;; MSG SIZE  rcvd: 136
+
+root@ns-s04:/# dig s04.lab MX
+
+; <<>> DiG 9.18.39-0ubuntu0.24.04.8-Ubuntu <<>> s04.lab MX
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 34593
+;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+;; QUESTION SECTION:
+;s04.lab.                       IN      MX
+
+;; ANSWER SECTION:
+s04.lab.                90      IN      MX      40 mail.s04.lab.
+
+;; Query time: 0 msec
+;; SERVER: 10.53.0.53#53(10.53.0.53) (UDP)
+;; WHEN: Thu Nov 12 11:22:35 UTC 2026
+;; MSG SIZE  rcvd: 57
+
+dig @10.53.1.1 s04.lab MX +norec
+
+; <<>> DiG 9.18.39-0ubuntu0.24.04.8-Ubuntu <<>> @10.53.1.1 s04.lab MX +norec
+; (1 server found)
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 32100
+;; flags: qr aa; QUERY: 1, ANSWER: 1, AUTHORITY: 1, ADDITIONAL: 3
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+; COOKIE: 07a01a035c65ce51010000006af5a18e561ca73b1a016e28 (good)
+;; QUESTION SECTION:
+;s04.lab.                       IN      MX
+
+;; ANSWER SECTION:
+s04.lab.                90      IN      MX      40 mail.s04.lab.
+
+;; AUTHORITY SECTION:
+s04.lab.                90      IN      NS      ns.s04.lab.
+
+;; ADDITIONAL SECTION:
+mail.s04.lab.           90      IN      A       10.53.0.80
+ns.s04.lab.             90      IN      A       10.53.1.1
+
+;; Query time: 0 msec
+;; SERVER: 10.53.1.1#53(10.53.1.1) (UDP)
+;; WHEN: Thu Nov 12 11:22:54 UTC 2026
+;; MSG SIZE  rcvd: 134
 
 ```
 
 | Запит | flags | ANSWER (кількість, типи) | AUTHORITY (кількість, типи) | ADDITIONAL (кількість, типи) | TTL |
 |---|---|---|---|---|---|
-| псевдонім через resolver-a | | | | | |
-| псевдонім через 10.53.1.1 | | | | | |
-| MX через resolver-a | | | | | |
-| MX через 10.53.1.1 | | | | | |
+| псевдонім через resolver-a | qr rd ra | 2 | 0 | 1 | 90 |
+| псевдонім через 10.53.1.1 | qr aa	 | 2 | 1 | 2 | 90 |
+| MX через resolver-a | qr rd ra | 1 | 0 | 1 | 90 |
+| MX через 10.53.1.1 | qr aa	 | 1 | 1 | 3 | 90 |
 
-Пояснення відмінностей:
+Пояснення відмінностей: Резолвер відповідає без aa, але з rd і ra: він сам шукає відповідь для клієнта і не зберігає зону. Мій сервер відповідає з aa, бо зона лежить у нього, і без ra, бо шукати за когось він не вміє. Резолвер повертає лише саму відповідь, а мій сервер додає ще NS і адреси серверів (для MX ще й адресу mail). Для docs у відповіді два записи, CNAME на www і A з адресою www, а TTL скрізь 90, бо запис щойно потрапив у кеш резолвера з повним часом.
 
 Повідомлення `zone-check` після тимчасового додавання `@ IN CNAME www`:
 
 ```text
-
+zone-check
+dns_master_load: /lab/zone/s04.lab.zone:21: s04.lab: CNAME and other data
+zone s04.lab/IN: loading from master file /lab/zone/s04.lab.zone failed: CNAME and other data
+zone s04.lab/IN: not loaded due to errors.
 ```
 
-1. Який TTL має кожен запис зони і звідки це значення взято?
+1. Який TTL має кожен запис зони і звідки це значення взято? Записи www, docs, mail, @ MX і @ TXT мають TTL 90 с: це значення директиви $TTL з файлу зони, бо в самих записах TTL не вказано. Запис edge має TTL 20 с, бо його задано явно в рядку запису, і він перекриває $TTL.
 
-2. Скільки записів містить секція ANSWER у відповіді на запит псевдоніма і чому?
+2. Скільки записів містить секція ANSWER у відповіді на запит псевдоніма і чому? Два: CNAME docs → www.s04.lab. і A www.s04.lab. → 10.53.0.80. Ми питали адресу (тип A), а docs є лише псевдонімом, тому сервер віддає і сам CNAME, і адресу цільового імені www.
 
-3. Чому запис CNAME неможливо розмістити для імені `@`?
+3. Чому запис CNAME неможливо розмістити для імені `@`? CNAME означає, що ім'я є псевдонімом іншого імені, тому для нього не допускаються інші записи. На @ вже є SOA, NS, MX і TXT, тож CNAME з ними конфліктує. Експеримент це підтвердив: zone-check видав CNAME and other data, і зона не завантажилась.
 
 ## Завдання 4. TTL і видимість змін
 
